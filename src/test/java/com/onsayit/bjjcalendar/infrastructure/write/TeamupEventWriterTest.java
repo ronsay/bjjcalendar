@@ -210,6 +210,38 @@ class TeamupEventWriterTest {
         }
 
         @Test
+        void should_prefer_remote_id_match_over_title_match() throws Exception {
+            // given
+            stubAuth();
+            final var matchByRemoteId = new EventRead();
+            matchByRemoteId.setRemoteId("ibjjf-1");
+            matchByRemoteId.setTitle("Old Title");
+            final var matchByTitle = new EventRead();
+            matchByTitle.setRemoteId("other-id");
+            matchByTitle.setTitle("World Championship");
+            final var event = TestEventFactory.create(Federation.IBJJF, "ibjjf-1", "World Championship",
+                    LocalDate.now().plusDays(10), LocalDate.now().plusDays(12), Map.of());
+            final var eventUpdate = new EventUpdate("evt-id-1").title("World Championship");
+            when(mapper.toEventUpdate(eq(event), eq(matchByRemoteId), any())).thenReturn(eventUpdate);
+
+            try (var ignoredApiClient = mockConstruction(ApiClient.class);
+                 var ignoredSubCalendarsApi = mockConstruction(SubCalendarsApi.class,
+                         subCalInitializer(subCalResponse()));
+                 var eventsMock = mockConstruction(EventsApi.class,
+                         eventsInitializer(eventsResponse(List.of(matchByRemoteId, matchByTitle))))) {
+
+                // when
+                writer.writeAll(List.of(event));
+
+                // then
+                final var eventsApi = eventsMock.constructed().getFirst();
+                verify(mapper).toEventUpdate(event, matchByRemoteId, List.of());
+                verify(eventsApi).putUpdateEvent(eq("cal-123"), eq("evt-id-1"), eq(eventUpdate), isNull());
+                verify(eventsApi, never()).postCreateEvent(any(), any(), any(), any());
+            }
+        }
+
+        @Test
         void should_update_all_matching_events() throws Exception {
             // given
             stubAuth();

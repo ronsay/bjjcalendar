@@ -143,10 +143,17 @@ public class TeamupEventWriter implements EventWriter {
 
     private Optional<EventRead> findMatchingEvent(final Event event,
                                                   final List<EventRead> existingEvents) {
+        final var matchByRemoteId = existingEvents.stream()
+                .filter(existing -> existing.getRemoteId() != null
+                        && event.id().equals(existing.getRemoteId()))
+                .findFirst();
+
+        if (matchByRemoteId.isPresent()) {
+            return matchByRemoteId;
+        }
+
         return existingEvents.stream()
-                .filter(existing ->
-                        (existing.getRemoteId() != null && event.id().equals(existing.getRemoteId()))
-                                || event.name().equals(existing.getTitle()))
+                .filter(existing -> event.name().equals(existing.getTitle()))
                 .findFirst();
     }
 

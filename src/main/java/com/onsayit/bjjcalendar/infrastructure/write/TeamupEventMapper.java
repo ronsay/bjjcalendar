@@ -86,7 +86,7 @@ public class TeamupEventMapper {
 
         final var matchingSubCalendar = subCalendars.stream()
                 .filter(sub -> sub.getName() != null
-                        && sub.getName().equalsIgnoreCase(event.federation().name()))
+                        && sub.getName().equalsIgnoreCase(event.federation().getLabel()))
                 .findFirst();
 
         return matchingSubCalendar.map(SubCalendarRead::getId).orElse(defaultSubCalendarId);
