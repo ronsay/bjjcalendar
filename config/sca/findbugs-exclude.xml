@@ -1,0 +1,29 @@
+<FindBugsFilter>
+    <!-- Exclude Lombok-generated classes (suffixed with underscore) -->
+    <Match>
+        <Class name="~.*\_.*"/>
+    </Match>
+    <!-- Exclude OpenAPI-generated classes -->
+    <Match>
+        <Package name="~com\.onsayit\.bjjcalendar\.infrastructure\.teamup(\..*)?"/>
+    </Match>
+    <Match>
+        <Package name="~com\.onsayit\.bjjcalendar\.infrastructure\.geoapify(\..*)?"/>
+    </Match>
+    <!-- NM_CONFUSING false positive: url() vs generated ServerConfiguration.URL() -->
+    <Match>
+        <Class name="com.onsayit.bjjcalendar.infrastructure.config.properties.TeamupEventWriterProperties"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+    <Match>
+        <Class name="com.onsayit.bjjcalendar.infrastructure.config.properties.CfjjbProperties"/>
+        <Bug pattern="NM_CONFUSING"/>
+    </Match>
+    <!-- EI_EXPOSE_REP / EI_EXPOSE_REP2 false positives on Java records (config properties and DTOs) -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP"/>
+    </Match>
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP2"/>
+    </Match>
+</FindBugsFilter>

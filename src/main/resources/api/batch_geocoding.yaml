@@ -1,0 +1,371 @@
+openapi: 3.0.0
+info:
+  title: Batch Geocoding API
+  description: When you need to transform a large number of addresses into geographic coordinates programmatically, you can use a Batch Geocoding API.
+  version: 1.0.0
+  contact:
+    name: Geoapify
+    url: https://geoapify.com
+    email: info@geoapify.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit
+servers:
+  - url: https://api.geoapify.com/v1
+    description: Primary Geoapify API endpoint
+
+tags:
+  - name: BatchGeocoding
+    description: Allows geocoding multiple addresses or coordinates in a single request.
+
+paths:
+  /batch/geocode/search:
+    post:
+      tags:
+        - BatchGeocoding
+      summary: Create a new forward batch geocoding job
+      description: Submits a batch of addresses to be geocoded, returning a job ID for retrieving results once the process is complete.
+      operationId: createForwardBatchGeocodingJob
+      parameters:
+        - name: apiKey
+          in: query
+          required: true
+          description: Your Geoapify API key to authenticate the request.
+          schema:
+            type: string
+            example: "YOUR_API_KEY"
+        - name: type
+          in: query
+          required: false
+          description: Defines the location type to be searched.
+          schema:
+            type: string
+            enum: [ country, state, city, postcode, street, amenity ]
+        - name: lang
+          in: query
+          required: false
+          description: Result language in ISO 639-1 format (e.g., 'en' for English).
+          schema:
+            type: string
+            example: en
+        - name: filter
+          in: query
+          required: false
+          description: Refine your batch geocoding results by applying specific geographic filters.
+          schema:
+            type: string
+        - name: bias
+          in: query
+          required: false
+          description: Prioritize batch geocoding results based on proximity to specific geographic areas.
+          schema:
+            type: string
+            example: "rect:8.738507,-10.137391,63.042511,59.098366"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              description: A list of address strings to be geocoded in batch.
+            example:
+              - "668 Cedar St, San Carlos, CA 94070, United States of America"
+              - "96 Rue Saint-Martin, 75004 Paris, France"
+      responses:
+        '202':
+          description: Batch geocoding job successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchJobResponse'
+        '400':
+          description: Bad Request.
+        '401':
+          description: Unauthorized.
+        '429':
+          description: Request limit exceeded.
+        '500':
+          description: Internal Server Error.
+
+    get:
+      tags:
+        - BatchGeocoding
+      summary: Retrieve batch geocoding job results
+      description: Fetch the results of a batch forward geocoding job using the provided job ID.
+      operationId: getBatchGeocodingResults
+      parameters:
+        - name: apiKey
+          in: query
+          required: true
+          description: Your Geoapify API key to authenticate the request.
+          schema:
+            type: string
+            example: "YOUR_API_KEY"
+        - name: id
+          in: query
+          required: true
+          description: The unique job ID that was returned when the batch geocoding job was created.
+          schema:
+            type: string
+            example: '8f25c31e2179441ea103868fd9c3784d'
+        - name: format
+          in: query
+          required: false
+          description: The format in which to retrieve the results, either JSON or CSV.
+          schema:
+            type: string
+            enum: [ json, csv ]
+            example: json
+      responses:
+        '200':
+          description: Successful response with batch geocoding results.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchForwardGeocodingResults'
+        '202':
+          description: The job is still processing.
+        '400':
+          description: Bad Request.
+        '401':
+          description: Unauthorized.
+        '429':
+          description: Request limit exceeded.
+        '500':
+          description: Internal Server Error.
+
+components:
+  schemas:
+    BatchJobResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique job identifier
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Current job status
+        url:
+          type: string
+          format: uri
+          description: URL to retrieve job results
+      required:
+        - id
+        - status
+        - url
+
+    BatchForwardGeocodingResults:
+      type: array
+      items:
+        $ref: '#/components/schemas/BatchForwardGeocodingResult'
+
+    BatchForwardGeocodingResult:
+      allOf:
+        - $ref: '#/components/schemas/LatLonCoordinates'
+        - $ref: '#/components/schemas/AddressComponents'
+        - $ref: '#/components/schemas/FormattedAddressFields'
+        - type: object
+          properties:
+            query:
+              $ref: '#/components/schemas/BatchForwardQuery'
+            datasource:
+              $ref: '#/components/schemas/Datasource'
+            address_line2:
+              type: string
+              description: The second part of the display address
+            state_code:
+              type: string
+              description: State shortcode
+            result_type:
+              $ref: '#/components/schemas/ResultType'
+            rank:
+              $ref: '#/components/schemas/Rank'
+            place_id:
+              type: string
+              description: Unique identifier for the place
+            category:
+              type: string
+              description: A place category
+            name:
+              type: string
+              description: Location name
+            distance:
+              type: number
+              description: Distance in meters
+            timezone:
+              $ref: '#/components/schemas/Timezone'
+            plus_code:
+              type: string
+              description: Plus code (Open Location Code)
+            plus_code_short:
+              type: string
+              description: Shortened plus code
+            bbox:
+              $ref: '#/components/schemas/BoundingBox'
+
+    BatchForwardQuery:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Original query text
+        parsed:
+          type: object
+          description: Parsed query components
+          properties:
+            housenumber:
+              type: string
+            street:
+              type: string
+            postcode:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            country:
+              type: string
+            expected_type:
+              type: string
+
+    # Shared schemas (inlined from common)
+    LatLonCoordinates:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+          description: Latitude coordinate
+        lon:
+          type: number
+          format: double
+          description: Longitude coordinate
+
+    AddressComponents:
+      type: object
+      properties:
+        country_code:
+          type: string
+          description: ISO 3166-1 alpha-2 country code
+        housenumber:
+          type: string
+          description: House number component of an address
+        street:
+          type: string
+          description: Street component of the address
+        country:
+          type: string
+          description: Country component of the address
+        county:
+          type: string
+          description: County component of the address
+        postcode:
+          type: string
+          description: Postcode or ZIP code
+        state:
+          type: string
+          description: State component of the address
+        city:
+          type: string
+          description: City component of the address
+        district:
+          type: string
+          description: District component of the address
+        suburb:
+          type: string
+          description: Suburb component of the address
+
+    FormattedAddressFields:
+      type: object
+      properties:
+        formatted:
+          type: string
+          description: Full formatted display address
+        address_line1:
+          type: string
+          description: Main part of the display address
+
+    Datasource:
+      type: object
+      properties:
+        sourcename:
+          type: string
+          description: Name of the data source
+        attribution:
+          type: string
+          description: Attribution text
+        license:
+          type: string
+          description: License information
+
+    ResultType:
+      type: string
+      description: Found location type
+      enum: [unknown, amenity, building, street, suburb, district, postcode, city, county, state, country]
+
+    Rank:
+      type: object
+      properties:
+        importance:
+          type: number
+          description: Importance score
+        popularity:
+          type: number
+          description: Popularity score
+        confidence:
+          type: number
+          description: Confidence level
+        confidence_city_level:
+          type: number
+          description: Confidence at city level
+        confidence_street_level:
+          type: number
+          description: Confidence at street level
+        match_type:
+          type: string
+          description: Type of match
+          enum: [full_match, inner_part, match_by_building, match_by_street]
+
+    Timezone:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Timezone name (e.g., America/Los_Angeles)
+        offset_STD:
+          type: string
+          description: Standard time offset
+        offset_STD_seconds:
+          type: integer
+          description: Standard time offset in seconds
+        offset_DST:
+          type: string
+          description: Daylight saving time offset
+        offset_DST_seconds:
+          type: integer
+          description: DST offset in seconds
+        abbreviation_STD:
+          type: string
+          description: Standard time abbreviation
+        abbreviation_DST:
+          type: string
+          description: DST abbreviation
+
+    BoundingBox:
+      type: object
+      properties:
+        lon1:
+          type: number
+          format: double
+        lat1:
+          type: number
+          format: double
+        lon2:
+          type: number
+          format: double
+        lat2:
+          type: number
+          format: double
