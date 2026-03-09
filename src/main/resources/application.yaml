@@ -3,13 +3,13 @@ spring:
     name: BJJ Calendar
 
 geoapify:
-  api-key: ${GEOAPIFY_API_KEY:}
+  api-key: ${GEOAPIFY_API_KEY}
   polling-interval-ms: 1000
   max-polling-attempts: 30
 
 teamup:
   api:
-    enabled: false
+    enabled: true
     url: https://api.teamup.com
     email: ${TEAMUP_EMAIL}
     password: ${TEAMUP_PASSWORD}
@@ -36,7 +36,7 @@ sources:
     calendar-json: /api/v1/events/calendar.json
     etag-file: target/cache/ibjjf_calendar_etag.txt
   ajp:
-    enabled: false
+    enabled: true
     calendar-pattern: https://ajptour.com/en/events-1/events-calendar-%s
     events:
       - Grand Slam
@@ -54,7 +54,7 @@ sources:
       - pt
       - tr
   cfjjb:
-    enabled: true
+    enabled: false
     base-url: https://cfjjb.com
     calendar-page: /competitions/calendrier-competitions
     excludes:
@@ -74,7 +74,7 @@ sources:
       - de
       - nl
       - ch
-    distance-filter-enabled: false
+    distance-filter-enabled: true
     max-distance: 150
     origin-latitude: 49.6117
     origin-longitude: 6.1300

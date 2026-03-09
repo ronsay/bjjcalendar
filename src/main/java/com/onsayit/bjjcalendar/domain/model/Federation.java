@@ -13,7 +13,7 @@ public enum Federation {
 
     private final String label;
 
-    Federation(final String label) {
-        this.label = label;
+    Federation(final String labelParam) {
+        this.label = labelParam;
     }
 }
