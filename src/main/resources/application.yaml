@@ -1,6 +1,7 @@
 spring:
   application:
     name: BJJ Calendar
+    version: 1.0.0
 
 geoapify:
   api-key: ${GEOAPIFY_API_KEY}
@@ -23,7 +24,7 @@ sources:
     "Petit-lancy": "Geneva"
     "Barueri": "São Paulo"
   ibjjf:
-    enabled: false
+    enabled: true
     regions:
       - Europe
     championshipTypes:
@@ -54,14 +55,14 @@ sources:
       - pt
       - tr
   cfjjb:
-    enabled: false
+    enabled: true
     base-url: https://cfjjb.com
     calendar-page: /competitions/calendrier-competitions
     excludes:
       - IBJJF
       - Festival
   smoothcomp:
-    enabled: false
+    enabled: true
     url: https://smoothcomp.com/en/events/upcoming
     grappling-industries-url: https://grapplingindustries.smoothcomp.com
     naga-url: https://naga.smoothcomp.com
